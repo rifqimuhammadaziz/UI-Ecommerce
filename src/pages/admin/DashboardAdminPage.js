@@ -6,8 +6,10 @@ const DashboardAdminPage = () => {
     <MainPage>
       <div className="main-content">
         <div className="content">
-          <div className="content-header">
-            <h2>Dashboard Admin</h2>
+          <div className="content-inner">
+            <div className="content-header">
+              <h2>Dashboard Admin</h2>
+            </div>
           </div>
         </div>
       </div>

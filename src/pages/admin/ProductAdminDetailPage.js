@@ -2,9 +2,9 @@ import { Button, ConfirmDialog, ProgressBar } from "primereact";
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import MainPage from "../../components/MainPage";
+import { APP_BASE_URL } from "../../configs/Constants";
 import {
   deleteProductByID,
-  findAllProducts,
   findProductByID,
 } from "../../services/ProductService";
 
@@ -12,22 +12,48 @@ const ProductAdminDetailPage = () => {
   const [product, setProduct] = useState();
   const [loading, setLoading] = useState(true);
   const [deleteDialog, setDeleteDialog] = useState(false);
+  const [img, setImg] = useState();
   const { id } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // get product
     const loadProduct = async () => {
       try {
         const response = await findProductByID(id);
-        setProduct(response.data);
+        const _product = response.data;
+        setProduct(_product);
+
+        // get image
+        if (_product.image) {
+          fetchImage(_product.image);
+        }
+
         setLoading(false);
       } catch (error) {
         console.error(error);
       }
     };
     loadProduct();
+    // eslint-disable-next-line
   }, [id]);
 
+  // get token
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  // get image product
+  const fetchImage = async (image) => {
+    const response = await fetch(`${APP_BASE_URL}/api/images/${image}`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    });
+    const imageBlob = await response.blob();
+    const imageObjectURL = URL.createObjectURL(imageBlob);
+    setImg(imageObjectURL);
+  };
+
+  // function delete product
   const handleDelete = async () => {
     try {
       await deleteProductByID(id);
@@ -80,25 +106,46 @@ const ProductAdminDetailPage = () => {
               </div>
               <div className="content-body">
                 <div className="content-detail shadow-1">
-                  <div className="grid">
-                    <div className="col-fixed detail-label">Product Name</div>
-                    <div className="col">{product.name}</div>
-                  </div>
-                  <div className="grid">
-                    <div className="col-fixed detail-label">Category</div>
-                    <div className="col">{product.category.name}</div>
-                  </div>
-                  <div className="grid">
-                    <div className="col-fixed detail-label">Description</div>
-                    <div className="col">{product.description}</div>
-                  </div>
-                  <div className="grid">
-                    <div className="col-fixed detail-label">Price</div>
-                    <div className="col">{product.price}</div>
-                  </div>
-                  <div className="grid">
-                    <div className="col-fixed detail-label">Stock</div>
-                    <div className="col">{product.stock}</div>
+                  <div className="flex">
+                    <div className="flex-grow-1">
+                      <div className="grid">
+                        <div className="col-fixed detail-label">
+                          Product Name
+                        </div>
+                        <div className="col">{product.name}</div>
+                      </div>
+                      <div className="grid">
+                        <div className="col-fixed detail-label">Category</div>
+                        <div className="col">{product.category.name}</div>
+                      </div>
+                      <div className="grid">
+                        <div className="col-fixed detail-label">
+                          Description
+                        </div>
+                        <div className="col">{product.description}</div>
+                      </div>
+                      <div className="grid">
+                        <div className="col-fixed detail-label">Price</div>
+                        <div className="col">{product.price}</div>
+                      </div>
+                      <div className="grid">
+                        <div className="col-fixed detail-label">Stock</div>
+                        <div className="col">{product.stock}</div>
+                      </div>
+                    </div>
+                    <div className="flex-none">
+                      <div className="image-display-wrapper">
+                        {img ? (
+                          <img
+                            src={img}
+                            alt="Product"
+                            className="image-display"
+                          />
+                        ) : (
+                          <i className="icon-display pi pi-image"></i>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
